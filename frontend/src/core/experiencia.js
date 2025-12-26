@@ -1,36 +1,45 @@
-// core/experiencia.js // Regras para contrato de experiência (prazo determinado) // Cobre: término normal, demissão pela empresa antes do término, // e pedido de desligamento pelo funcionário antes do término.
+// Cálculo para contratos de experiência
 
-import { diasEntre, salarioDiario } from "./utils";
+import { diasEntre, salarioDia } from "./utils";
 
 /**
+ * Experiência — calcula indenização quando rescinde antes do fim
+ *
+ * @param {
+ *  tipoContrato: 'clt' | 'experiencia',
+ *  motivo: string,
+ *  desligamento: string|Date,
+ *  fimPrevistoContrato?: string|Date,
+ *  salario: number,
+ * } input
+ */
 
-@param {
+export function calcularExperiencia(input) {
+  if (input.tipoContrato !== "experiencia") {
+    return { aplica: false, indenizacao: 0 };
+  }
 
-tipoContrato: 'clt' | 'experiencia',
+  const desligamento = new Date(input.desligamento);
+  const fim = new Date(input.fimPrevistoContrato);
 
-motivo: 'empresaAntes' | 'funcionarioAntes' | 'terminoNormal' | string,
+  // Se terminou naturalmente
+  if (input.motivo === "experienciaFim") {
+    return { aplica: false, indenizacao: 0 };
+  }
 
-desligamento: string|Date,
+  // Se foi demitido antes do fim → paga metade do que falta
+  if (input.motivo === "experienciaAntes") {
+    const diasRestantes = diasEntre(desligamento, fim);
 
-fimPrevistoContrato?: string|Date,
+    const indenizacao =
+      diasRestantes > 0 ? diasRestantes * salarioDia(input.salario) * 0.5 : 0;
 
-salario: number
+    return {
+      aplica: true,
+      diasRestantes,
+      indenizacao,
+    };
+  }
 
-} input */ export function calcularExperiencia(input) { if (input.tipoContrato !== "experiencia") { return { aplica: false, indenizacao: 0, observacao: "Contrato indeterminado — regras de experiência não se aplicam", }; }
-
-
-const { motivo, desligamento, fimPrevistoContrato, salario } = input;
-
-if (!fimPrevistoContrato) { return { aplica: true, indenizacao: 0, alerta: "Data prevista de término não informada — assumido sem indenização", }; }
-
-const diasRestantes = Math.max(0, diasEntre(desligamento, fimPrevistoContrato));
-
-// 🔹 Regra principal: 50% do que faltava do contrato const base = salarioDiario(salario) * diasRestantes * 0.5;
-
-if (motivo === "empresaAntes") { return { aplica: true, tipo: "demissao_empresa_antes", diasRestantes, indenizacao: base, }; }
-
-if (motivo === "funcionarioAntes") { return { aplica: true, tipo: "pedido_funcionario_antes", diasRestantes, indenizacaoPossivel: base, // pode ser cobrada pela empresa }; }
-
-return { aplica: true, tipo: "termino_normal", diasRestantes: 0, indenizacao: 0, }; }
-
-export default { calcularExperiencia };
+  return { aplica: false, indenizacao: 0 };
+}
