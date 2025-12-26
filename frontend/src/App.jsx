@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { calcularRescisao } from "../../core/calcularRescisao.js";
+import { calcularRescisao } from "./core/calcularRescisao.js";
 
 export default function App() {
   const [step, setStep] = useState(1);
