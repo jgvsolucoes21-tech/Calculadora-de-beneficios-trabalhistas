@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-
-// MVP — Simulador de Rescisão (Prototipo Front)
-// Fluxo: Dados → Tipo contrato → Motivo → Férias → Resultado (placeholder)
+import { calcularRescisao } from "../../core/calcularRescisao.js";
 
 export default function App() {
   const [step, setStep] = useState(1);
+  const [resultado, setResultado] = useState(null);
 
   const [form, setForm] = useState({
     admissao: "",
@@ -176,6 +175,7 @@ export default function App() {
 
             {form.tipoContrato === "experiencia" && (
               <>
+                The
                 <Option
                   label="Demissão pela empresa antes do término"
                   value="empresaAntes"
@@ -273,8 +273,17 @@ export default function App() {
             <button onClick={back} className="px-4 py-2 rounded-xl border">
               Voltar
             </button>
+
             <button
-              onClick={next}
+              onClick={() => {
+                const res = calcularRescisao({
+                  ...form,
+                  salario: Number(form.salario),
+                });
+
+                setResultado(res);
+                next();
+              }}
               className="px-4 py-2 rounded-xl bg-gray-900 text-white"
             >
               Ver resultado
@@ -284,12 +293,32 @@ export default function App() {
       )}
 
       {step === 5 && (
-        <StepBox title="Resultado (pré-visualização)">
-          <p className="text-gray-600 text-sm">
-            Nesta fase do protótipo ainda não conectamos o motor de cálculo.
-            Aqui aparecerá o resumo com valores, FGTS, férias, 13º e mais — com
-            o botão \"Como calculamos?\".
-          </p>
+        <StepBox title="Resultado">
+          {!resultado && (
+            <p className="text-sm text-gray-500">
+              Não foi possível calcular — tente novamente.
+            </p>
+          )}
+
+          {resultado && (
+            <div className="mt-3 space-y-2 text-sm">
+              <div>
+                Total estimado:{" "}
+                <strong>
+                  R$ {resultado.resumo.total.toFixed(2)}
+                </strong>
+              </div>
+
+              <div>Férias: R$ {resultado.itens.ferias.total.toFixed(2)}</div>
+              <div>13º: R$ {resultado.itens.decimo.decimo.toFixed(2)}</div>
+              <div>
+                FGTS (multa): R$ {resultado.itens.fgts.multa.toFixed(2)}
+              </div>
+              <div>
+                Aviso prévio: R$ {resultado.itens.aviso.valor.toFixed(2)}
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-between pt-4">
             <button onClick={back} className="px-4 py-2 rounded-xl border">
@@ -305,7 +334,6 @@ export default function App() {
   );
 }
 
-// componente auxiliar
 function Option({ label, value, form, update }) {
   return (
     <label className="flex items-center gap-2">
