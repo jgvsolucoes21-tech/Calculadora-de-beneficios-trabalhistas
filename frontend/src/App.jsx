@@ -1,80 +1,57 @@
 import React, { useState } from "react";
-import { calcularRescisao } from "./core/calcularRescisao.js";
+import { calcularRescisao } from "./core/calcularRescisao";
 
 export default function App() {
-  const [form, setForm] = useState({
-    admissao: "",
-    desligamento: "",
-    salario: "",
-    tipoContrato: "clt",
-    tipoDesligamento: "",
-  });
+  const [admissao, setAdmissao] = useState("");
+  const [desligamento, setDesligamento] = useState("");
+  const [salario, setSalario] = useState("");
 
-  const [resultado, setResultado] = useState(null);
+  function handleSubmit(e) {
+    e.preventDefault();
 
-  const update = (field, value) =>
-    setForm((f) => ({ ...f, [field]: value }));
-
-  const calcular = () => {
     try {
-      const r = calcularRescisao({
-        admissao: form.admissao,
-        desligamento: form.desligamento,
-        salario: Number(form.salario),
-        tipoContrato: form.tipoContrato,
-        tipoDesligamento: form.tipoDesligamento,
+      const resultado = calcularRescisao({
+        admissao,
+        desligamento,
+        salario: Number(salario),
+        tipoContrato: "clt",
+        tipoDesligamento: "semJustaCausa",
       });
 
-      setResultado(r);
-    } catch (e) {
-      alert("Erro ao calcular: " + e.message);
+      alert(
+        `Total estimado: R$ ${resultado.resumo.total.toFixed(2)}`
+      );
+
+    } catch (err) {
+      alert(`Erro ao calcular: ${err.message}`);
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Calculadora de Rescisão — MVP
-      </h1>
+    <div style={{ padding: 20 }}>
+      <h1>Calculadora de Rescisão — MVP</h1>
 
-      <div className="space-y-3">
+      <form onSubmit={handleSubmit}>
         <input
-          className="border p-2 w-full"
           placeholder="Data de admissão (YYYY-MM-DD)"
-          value={form.admissao}
-          onChange={(e) => update("admissao", e.target.value)}
+          value={admissao}
+          onChange={(e) => setAdmissao(e.target.value)}
         />
 
         <input
-          className="border p-2 w-full"
           placeholder="Data de desligamento (YYYY-MM-DD)"
-          value={form.desligamento}
-          onChange={(e) => update("desligamento", e.target.value)}
+          value={desligamento}
+          onChange={(e) => setDesligamento(e.target.value)}
         />
 
         <input
-          className="border p-2 w-full"
           placeholder="Salário"
-          value={form.salario}
-          onChange={(e) => update("salario", e.target.value)}
+          value={salario}
+          onChange={(e) => setSalario(e.target.value)}
         />
 
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-          onClick={calcular}
-        >
-          Calcular
-        </button>
-      </div>
-
-      {resultado && (
-        <div className="mt-6 p-4 border bg-white rounded">
-          <h2 className="font-semibold mb-2">Resultado</h2>
-          <pre className="text-sm">
-            {JSON.stringify(resultado.resumo, null, 2)}
-          </pre>
-        </div>
-      )}
+        <button type="submit">Calcular</button>
+      </form>
     </div>
   );
 }
