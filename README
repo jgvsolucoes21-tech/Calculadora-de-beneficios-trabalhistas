@@ -1,0 +1,118 @@
+🧠 Motor de Cálculo — Benefícios Trabalhistas (MVP)
+
+Este repositório contém o motor de cálculo (core) usado para estimar valores de rescisão, férias, FGTS, aviso prévio e seguro-desemprego no contexto CLT brasileiro, incluindo casos de acordo e contrato de experiência.
+
+> 🎯 Objetivo: ser um núcleo independente, testável e reutilizável (web, mobile, API, etc.).
+
+
+
+
+---
+
+📂 Estrutura
+
+/core
+  /utils
+  ferias.js
+  decimo.js
+  fgts.js
+  aviso.js
+  experiencia.js
+  seguro.js
+  calcularRescisao.js
+
+tests/
+README.md
+
+
+---
+
+⚙️ Conceitos principais suportados
+
+CLT indeterminado
+
+Contrato de experiência
+
+Férias (pendentes + proporcionais + gozadas)
+
+13º salário proporcional
+
+FGTS + multa (20% / 40% / 0%)
+
+Acordo entre as partes (saque 80%)
+
+Aviso prévio indenizado
+
+Seguro-desemprego (parametrizado)
+
+
+> ❗ "Dobro de férias vencidas" e adicionais entram na V2.
+
+
+
+
+---
+
+🚀 Como usar (exemplo)
+
+import { calcularRescisao } from "./core/calcularRescisao";
+
+const resultado = calcularRescisao({
+  salario: 2000,
+  admissao: "2021-04-07",
+  desligamento: "2025-08-11",
+  tipoContrato: "clt",
+  tipoDesligamento: "semJustaCausa",
+  feriasGozadas: { dias: 30, data: "2023-07-01" },
+});
+
+console.log(resultado.total);
+
+
+---
+
+🧪 Testes
+
+Cada módulo é coberto com exemplos reais. Rodar:
+
+npm install
+npm test
+
+
+---
+
+🗺️ Roadmap curto (MVP)
+
+[ ] Implementar helpers de datas (meses válidos, anos completos)
+
+[ ] Implementar férias (com fluxo de pendentes + gozadas)
+
+[ ] Implementar FGTS + multas
+
+[ ] Implementar aviso prévio
+
+[ ] Implementar regras de experiência
+
+[ ] Parametrizar seguro-desemprego
+
+[ ] Criar testes com casos reais
+
+[ ] Publicar pacote (opcional)
+
+
+
+---
+
+📝 Notas importantes
+
+Todas as regras serão parametrizáveis (sem recompile).
+
+Documentar sempre que houver mudanças legais.
+
+Transparência: cada cálculo deve expor "como foi calculado".
+
+
+
+---
+
+Contribuições, revisões e discussões são bem-vindas. Vamos construir iterando — simples primeiro, correto sempre.
