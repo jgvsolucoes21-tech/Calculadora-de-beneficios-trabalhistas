@@ -1,47 +1,47 @@
-// core/seguro.js // Cálculo de Seguro-Desemprego (MVP parametrizável) // Regras: somente para demissão SEM JUSTA CAUSA (CLT) // Valores de faixas e quantidade de parcelas ficam em tabela externa (parametrização)
+// Cálculo do Seguro-Desemprego (regras simplificadas)
 
-/**
+export function calcularSeguro({ tipoDesligamento, mediaSalarios, mesesTrabalhados, config }) {
+  // Só tem direito sem justa causa ou acordo (simplificação)
+  const temDireito =
+    tipoDesligamento === "semJustaCausa" ||
+    tipoDesligamento === "acordo";
 
-tabelaFaixas: array ordenado por limiteSuperior
+  if (!temDireito) {
+    return {
+      temDireito: false,
+      parcelas: 0,
+      valorParcela: 0,
+      total: 0,
+    };
+  }
 
-[{ ate: number, fator: number, parcelaFixa?: number }, ...]
+  // valor base por faixa (pode vir de config futura)
+  const tabela = config?.tabelaFaixas || [
+    { limite: 2000, multiplicador: 0.8 },
+    { limite: 3000, multiplicador: 0.5 },
+    { limite: Infinity, multiplicador: 0.4 },
+  ];
 
-regraParcelas: função ou mapa que define qtd. de parcelas por meses trabalhados */
+  let valorBase = 0;
 
+  for (const faixa of tabela) {
+    if (mediaSalarios <= faixa.limite) {
+      valorBase = mediaSalarios * faixa.multiplicador;
+      break;
+    }
+  }
 
-function calcularValorCota(media, tabelaFaixas) { // percorre faixas até encontrar onde a média se encaixa for (const faixa of tabelaFaixas) { if (media <= faixa.ate) { // algumas faixas usam fator, outras somam fixo — deixamos flexível return faixa.parcelaFixa ?? media * faixa.fator; } } // se passou de todas as faixas, usa última regra (geralmente teto fixo) const ultima = tabelaFaixas[tabelaFaixas.length - 1]; return ultima.parcelaFixa ?? media * ultima.fator; }
+  // número de parcelas
+  let parcelas = 0;
 
-function calcularQuantidadeParcelas(mesesTrabalhados, regraParcelas) { if (typeof regraParcelas === "function") { return regraParcelas(mesesTrabalhados); } // fallback: mapa simples { minMeses: parcelas } let qtd = 0; for (const faixa of regraParcelas) { if (mesesTrabalhados >= faixa.min) qtd = faixa.parcelas; } return qtd; }
+  if (mesesTrabalhados >= 24) parcelas = 5;
+  else if (mesesTrabalhados >= 18) parcelas = 4;
+  else if (mesesTrabalhados >= 12) parcelas = 3;
 
-/**
-
-@param {
-
-tipoDesligamento: string,
-
-mediaSalarios: number,           // média dos últimos 3 salários
-
-mesesTrabalhados: number,        // últimos vínculos válidos para o benefício
-
-config: {
-
-tabelaFaixas: Array,
-
-regraParcelas: Array|Function
-
+  return {
+    temDireito: true,
+    parcelas,
+    valorParcela: valorBase,
+    total: parcelas * valorBase,
+  };
 }
-
-} input */ export function calcularSeguro(input) { const { tipoDesligamento, mediaSalarios, mesesTrabalhados, config } = input;
-
-
-if (tipoDesligamento !== "semJustaCausa") { return { direito: false, motivo: "Tipo de desligamento não elegível" }; }
-
-if (!config?.tabelaFaixas || !config?.regraParcelas) { return { direito: false, motivo: "Configuração de tabela ausente" }; }
-
-const valorCota = calcularValorCota(mediaSalarios, config.tabelaFaixas); const cotas = calcularQuantidadeParcelas(mesesTrabalhados, config.regraParcelas);
-
-if (cotas === 0) { return { direito: false, motivo: "Tempo mínimo não atingido" }; }
-
-return { direito: true, cotas, valorCota, total: valorCota * cotas, }; }
-
-export default { calcularSeguro };
