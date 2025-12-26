@@ -34,5 +34,3 @@ const seguro = calcularSeguro({ tipoDesligamento: input.tipoDesligamento, mediaS
 // --- soma de itens que compõem a rescisão imediata (sem FGTS sacado) --- const total = ferias.total + decimo.decimo + fgts.multa + aviso.valor + (experiencia.indenizacao || 0);
 
 return { resumo: { total, observacao: "Valores estimados, podem variar por verbas adicionais e convenções coletivas.", }, itens: { ferias, decimo, fgts, aviso, experiencia, seguro, }, }; }
-
-export default { calcularRescisao };
